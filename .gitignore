@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Env files — never commit real keys
+.env
+.env.local
+.env.*.local
+frontend/.env
+backend/.env
+
+# Generated BM25 index — rebuild with `npm run ingest`
+backend/data/chunks.json
+
+# Python remnants
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+backend/chroma_db/
+
+# Build output
+frontend/dist/
+backend/dist/
+.vite/
+
+# PDF handbook — large binary, distribute separately
+*.pdf
+scholarpath_colab.ipynb
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
