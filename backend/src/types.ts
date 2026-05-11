@@ -50,4 +50,5 @@ export interface Citation {
 export interface ChatResponse {
   answer: string;
   citations: Citation[];
+  follow_up_questions: string[];
 }

@@ -15,13 +15,9 @@ export function ProfileForm({ profile, onChange }: Props) {
     onChange({ ...profile, [key]: value });
 
   return (
-    <div className="bg-surface-light dark:bg-surface-dark-alt rounded-lg p-4 border border-surface-light-border dark:border-surface-dark-border space-y-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
-      <h2 className="font-bold text-brand-red dark:text-brand-red-light flex items-center gap-2 text-lg">
-        <span className="inline-block w-2 h-4 bg-brand-gold rounded-sm" />
-        Your Profile
-      </h2>
-
-      <Section title="Academic">
+    <div className="grid grid-cols-2 grid-rows-[auto_auto_auto] gap-4 h-full">
+      {/* Row 1: Academic | Financial */}
+      <Card title="Academic">
         <label className="block text-sm">
           <span className={labelCls}>GWA (1.00 = highest, 5.00 = lowest)</span>
           <input
@@ -61,9 +57,9 @@ export function ProfileForm({ profile, onChange }: Props) {
             className={inputCls}
           />
         </label>
-      </Section>
+      </Card>
 
-      <Section title="Financial">
+      <Card title="Financial">
         <label className="block text-sm">
           <span className={labelCls}>Annual Family Income (PHP)</span>
           <input
@@ -75,51 +71,53 @@ export function ProfileForm({ profile, onChange }: Props) {
             className={inputCls}
           />
         </label>
-      </Section>
+      </Card>
 
-      <Section title="Background">
+      {/* Row 2: Background | Mapúa Relationships */}
+      <Card title="Background">
         <YesNo label="Filipino citizen" value={profile.is_filipino} onChange={(v) => update("is_filipino", v)} />
         <YesNo
-          label="I am an athlete (NCAA-eligible or represent Mapúa)"
+          label="Athlete (NCAA-eligible or represent Mapúa)"
           value={profile.is_athlete}
           onChange={(v) => update("is_athlete", v)}
         />
         <YesNo
-          label="I am a member of an indigenous community"
+          label="Member of an indigenous community"
           value={profile.is_indigenous}
           onChange={(v) => update("is_indigenous", v)}
         />
         <YesNo
-          label="I am a person with disability (PWD)"
+          label="Person with disability (PWD)"
           value={profile.is_pwd}
           onChange={(v) => update("is_pwd", v)}
         />
-      </Section>
+      </Card>
 
-      <Section title="Mapúa Relationships">
+      <Card title="Mapúa Relationships">
         <YesNo
-          label="I have a direct family member who is a Mapúa alumnus"
+          label="Direct family member is a Mapúa alumnus"
           value={profile.is_alumni_relative}
           onChange={(v) => update("is_alumni_relative", v)}
         />
         <YesNo
-          label="I am a child of a Mapúa faculty member"
+          label="Child of a Mapúa faculty member"
           value={profile.is_faculty_child}
           onChange={(v) => update("is_faculty_child", v)}
         />
         <YesNo
-          label="I am a Mapúa employee or family of one"
+          label="Mapúa employee or family of one"
           value={profile.is_employee_relative}
           onChange={(v) => update("is_employee_relative", v)}
         />
         <YesNo
-          label="I have a sibling currently enrolled at Mapúa"
+          label="Sibling currently enrolled at Mapúa"
           value={profile.has_sibling_enrolled}
           onChange={(v) => update("has_sibling_enrolled", v)}
         />
-      </Section>
+      </Card>
 
-      <Section title="High School (for freshmen)">
+      {/* Row 3: High School — full width */}
+      <Card title="High School (for freshmen)" className="col-span-2">
         <label className="block text-sm">
           <span className={labelCls}>Honors received</span>
           <select
@@ -134,18 +132,28 @@ export function ProfileForm({ profile, onChange }: Props) {
             <option value="none">None</option>
           </select>
         </label>
-      </Section>
+      </Card>
     </div>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Card({
+  title,
+  children,
+  className = "",
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <section className="space-y-2">
+    <section
+      className={`flex flex-col gap-3 bg-surface-light dark:bg-surface-dark-alt rounded-lg border border-surface-light-border dark:border-surface-dark-border p-4 ${className}`}
+    >
       <h3 className="text-xs font-bold uppercase tracking-wide text-brand-gold-dark dark:text-brand-gold border-b border-brand-gold/40 pb-1">
         {title}
       </h3>
-      <div className="space-y-2">{children}</div>
+      <div className="flex flex-col gap-3">{children}</div>
     </section>
   );
 }
@@ -163,15 +171,9 @@ function YesNo({
     <div className="text-sm">
       <p className="text-ink-light-strong dark:text-ink-dark-strong mb-1">{label}</p>
       <div className="flex gap-1">
-        <Pill active={value === true} onClick={() => onChange(true)}>
-          Yes
-        </Pill>
-        <Pill active={value === false} onClick={() => onChange(false)}>
-          No
-        </Pill>
-        <Pill active={value == null} onClick={() => onChange(null)}>
-          —
-        </Pill>
+        <Pill active={value === true} onClick={() => onChange(true)}>Yes</Pill>
+        <Pill active={value === false} onClick={() => onChange(false)}>No</Pill>
+        <Pill active={value == null} onClick={() => onChange(null)}>—</Pill>
       </div>
     </div>
   );

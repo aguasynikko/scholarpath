@@ -10,8 +10,8 @@ backend/node_modules/
 frontend/.env
 backend/.env
 
-# Generated BM25 index — rebuild with `npm run ingest`
-backend/data/chunks.json
+# Generated BM25 index — committed so deploy targets don't need to re-ingest
+# backend/data/chunks.json
 
 # Python remnants
 __pycache__/

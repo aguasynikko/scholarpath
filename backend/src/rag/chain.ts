@@ -15,7 +15,10 @@ RULES:
    b. Walk through each relevant scholarship: criterion · student's profile value · PASS / FAIL / NEED MORE INFO. Use a bullet list.
    c. End with a "Summary" of what they likely qualify for, what they don't, and what extra info would help.
 4. Always cite page numbers like [p.7].
-5. Use plain, student-friendly language. No legalese.`;
+5. Use plain, student-friendly language. No legalese.
+6. At the very end of your response, on its own line, write exactly:
+   FOLLOW_UPS: <question 1> | <question 2> | <question 3>
+   These must be 3 short follow-up questions a student would naturally ask next about this topic. Do not number them.`;
 
 function yn(b: boolean | null | undefined): string {
   if (b === true) return "yes";
@@ -92,6 +95,7 @@ export async function answer(
       answer:
         "To assess your eligibility, I need your profile first — please fill out the **Profile form on the left** (GWA, year level, program, etc.), then ask again.",
       citations: [],
+      follow_up_questions: [],
     };
   }
 
@@ -113,8 +117,12 @@ export async function answer(
     ],
   });
 
-  return {
-    answer: completion.choices[0]?.message?.content ?? "",
-    citations: toCitations(hits),
-  };
+  const raw = completion.choices[0]?.message?.content ?? "";
+  const followUpMatch = raw.match(/\nFOLLOW_UPS:\s*(.+)$/m);
+  const follow_up_questions = followUpMatch
+    ? followUpMatch[1].split("|").map((q) => q.trim()).filter(Boolean)
+    : [];
+  const answer = raw.replace(/\nFOLLOW_UPS:.+$/m, "").trimEnd();
+
+  return { answer, citations: toCitations(hits), follow_up_questions };
 }

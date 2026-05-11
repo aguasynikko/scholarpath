@@ -1,14 +1,34 @@
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { sendChat } from "@/api/client";
 import type { ChatMessage, Citation, StudentProfile } from "@/types/api";
 
 export interface ChatTurn extends ChatMessage {
   citations?: Citation[];
+  followUpQuestions?: string[];
 }
 
-export function useChat(profile: StudentProfile) {
-  const [turns, setTurns] = useState<ChatTurn[]>([]);
+export function useChat(
+  profile: StudentProfile,
+  options: {
+    initialTurns?: ChatTurn[];
+    onUpdate?: (turns: ChatTurn[]) => void;
+  } = {},
+) {
+  const { initialTurns = [] } = options;
+  const [turns, setTurnsRaw] = useState<ChatTurn[]>(initialTurns);
+
+  // Keep onUpdate stable via ref so mutation closures don't go stale
+  const onUpdateRef = useRef(options.onUpdate);
+  onUpdateRef.current = options.onUpdate;
+
+  const setTurns = (updater: (prev: ChatTurn[]) => ChatTurn[]) => {
+    setTurnsRaw((prev) => {
+      const next = updater(prev);
+      onUpdateRef.current?.(next);
+      return next;
+    });
+  };
 
   const mutation = useMutation({
     mutationFn: (message: string) =>
@@ -23,7 +43,12 @@ export function useChat(profile: StudentProfile) {
     onSuccess: (data) => {
       setTurns((t) => [
         ...t,
-        { role: "assistant", content: data.answer, citations: data.citations },
+        {
+          role: "assistant",
+          content: data.answer,
+          citations: data.citations,
+          followUpQuestions: data.follow_up_questions,
+        },
       ]);
     },
     onError: (err: Error) => {
