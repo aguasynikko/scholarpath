@@ -30,7 +30,7 @@ function ChatArea({ profile, initialTurns, onTurnsUpdate, sidebarOpen, onOpenSid
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const { turns, send, isLoading } = useChat(profile, {
+  const { turns, send, isLoading, wakingUp } = useChat(profile, {
     initialTurns,
     onUpdate: (next) => {
       const firstUserMsg = next.find((t) => t.role === "user")?.content ?? "";
@@ -107,7 +107,16 @@ function ChatArea({ profile, initialTurns, onTurnsUpdate, sidebarOpen, onOpenSid
         {turns.map((t, i) => (
           <ChatMessage key={i} role={t.role} content={t.content} citations={t.citations} />
         ))}
-        {isLoading && (
+        {wakingUp && (
+          <div className="flex items-center gap-2 text-sm text-brand-gold-dark dark:text-brand-gold italic">
+            <svg className="animate-spin w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
+            </svg>
+            Server is waking up, please wait a moment…
+          </div>
+        )}
+        {isLoading && !wakingUp && (
           <div className="text-sm text-brand-gold-dark dark:text-brand-gold italic">
             ScholarPath is thinking…
           </div>

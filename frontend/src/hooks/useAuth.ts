@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { apiLogin, apiRegister } from "@/api/client";
+import { retryOnWakeup } from "@/lib/retryOnWakeup";
 
 const TOKEN_KEY = "scholarpath_token";
 const SESSION_KEY = "scholarpath_session";
@@ -21,6 +22,7 @@ function loadSession(): Session | null {
 
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(loadSession);
+  const [wakingUp, setWakingUp] = useState(false);
 
   const register = async (
     name: string,
@@ -29,7 +31,10 @@ export function useAuth() {
     password: string
   ): Promise<{ error?: string }> => {
     try {
-      const { token, user } = await apiRegister(name, studentId, email, password);
+      const { token, user } = await retryOnWakeup(
+        () => apiRegister(name, studentId, email, password),
+        setWakingUp
+      );
       localStorage.setItem(TOKEN_KEY, token);
       const s: Session = { userId: user.id, studentId: user.studentId, name: user.name };
       localStorage.setItem(SESSION_KEY, JSON.stringify(s));
@@ -46,7 +51,10 @@ export function useAuth() {
     password: string
   ): Promise<{ error?: string }> => {
     try {
-      const { token, user } = await apiLogin(identifier, password);
+      const { token, user } = await retryOnWakeup(
+        () => apiLogin(identifier, password),
+        setWakingUp
+      );
       localStorage.setItem(TOKEN_KEY, token);
       const s: Session = { userId: user.id, studentId: user.studentId, name: user.name };
       localStorage.setItem(SESSION_KEY, JSON.stringify(s));
@@ -64,5 +72,5 @@ export function useAuth() {
     setSession(null);
   };
 
-  return { session, register, login, logout };
+  return { session, register, login, logout, wakingUp };
 }

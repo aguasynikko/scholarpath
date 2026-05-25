@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { sendChat } from "@/api/client";
+import { retryOnWakeup } from "@/lib/retryOnWakeup";
 import type { ChatMessage, Citation, StudentProfile } from "@/types/api";
 
 export interface ChatTurn extends ChatMessage {
@@ -17,6 +18,7 @@ export function useChat(
 ) {
   const { initialTurns = [] } = options;
   const [turns, setTurnsRaw] = useState<ChatTurn[]>(initialTurns);
+  const [wakingUp, setWakingUp] = useState(false);
 
   // Keep onUpdate stable via ref so mutation closures don't go stale
   const onUpdateRef = useRef(options.onUpdate);
@@ -32,11 +34,14 @@ export function useChat(
 
   const mutation = useMutation({
     mutationFn: (message: string) =>
-      sendChat({
-        message,
-        profile,
-        history: turns.map(({ role, content }) => ({ role, content })),
-      }),
+      retryOnWakeup(
+        () => sendChat({
+          message,
+          profile,
+          history: turns.map(({ role, content }) => ({ role, content })),
+        }),
+        setWakingUp
+      ),
     onMutate: (message) => {
       setTurns((t) => [...t, { role: "user", content: message }]);
     },
@@ -63,5 +68,6 @@ export function useChat(
     turns,
     send: mutation.mutate,
     isLoading: mutation.isPending,
+    wakingUp,
   };
 }

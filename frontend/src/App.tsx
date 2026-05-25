@@ -11,7 +11,7 @@ function onboardingKey(userId: string) {
 }
 
 export default function App() {
-  const { session: initialSession, login, register, logout } = useAuth();
+  const { session: initialSession, login, register, logout, wakingUp } = useAuth();
   const [session, setSession] = useState<Session | null>(initialSession);
 
   const [onboardingDone, setOnboardingDone] = useState<boolean>(() =>
@@ -38,7 +38,7 @@ export default function App() {
     return (
       <div className="flex h-full w-full p-4 items-center justify-center">
         <div className="w-full max-w-xl h-full max-h-[700px]">
-          <Auth login={login} register={register} onAuthenticated={handleAuthenticated} />
+          <Auth login={login} register={register} onAuthenticated={handleAuthenticated} wakingUp={wakingUp} />
         </div>
       </div>
     );

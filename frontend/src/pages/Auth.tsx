@@ -15,6 +15,7 @@ export interface AuthProps {
   login: (identifier: string, password: string) => Promise<{ error?: string }>;
   register: (name: string, studentId: string, email: string, password: string) => Promise<{ error?: string }>;
   onAuthenticated: (session: Session) => void;
+  wakingUp?: boolean;
 }
 
 // ─── Login Form ────────────────────────────────────────────────────────────────
@@ -202,7 +203,7 @@ function RegisterForm({
 
 // ─── Main Auth Page ────────────────────────────────────────────────────────────
 
-export function Auth({ login, register, onAuthenticated }: AuthProps) {
+export function Auth({ login, register, onAuthenticated, wakingUp }: AuthProps) {
   const [tab, setTab] = useState<Tab>("login");
 
   return (
@@ -275,6 +276,19 @@ export function Auth({ login, register, onAuthenticated }: AuthProps) {
           )}
         </div>
       </div>
+
+      {/* Waking up banner */}
+      {wakingUp && (
+        <div className="shrink-0 bg-brand-gold/10 border-t border-brand-gold/30 px-4 py-2 flex items-center gap-2">
+          <svg className="animate-spin w-4 h-4 text-brand-gold-dark dark:text-brand-gold shrink-0" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
+          </svg>
+          <p className="text-xs text-brand-gold-dark dark:text-brand-gold font-medium">
+            Server is waking up, please wait a moment…
+          </p>
+        </div>
+      )}
 
       {/* Footer */}
       <div className="shrink-0 border-t border-surface-light-border dark:border-surface-dark-border bg-surface-light dark:bg-surface-dark-alt px-4 py-3">
