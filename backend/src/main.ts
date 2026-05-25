@@ -9,7 +9,8 @@ import { runMigrations } from "./db/migrate.js";
 
 async function main() {
   const app = express();
-  app.use(cors({ origin: config.corsOrigins }));
+  app.use(cors({ origin: true, credentials: true }));
+  app.options("*", cors({ origin: true, credentials: true }));
   app.use(express.json({ limit: "1mb" }));
 
   app.get("/", (_req, res) => res.json({ name: "ScholarPath", docs: "/api/health" }));
