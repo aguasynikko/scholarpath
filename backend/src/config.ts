@@ -10,6 +10,8 @@ export const config = {
     .filter(Boolean),
   handbookPath: process.env.HANDBOOK_PATH ?? "./data/scholarshiphandbook.pdf",
   indexPath: process.env.INDEX_PATH ?? "./data/chunks.json",
+  databaseUrl: process.env.DATABASE_URL ?? "",
+  jwtSecret: process.env.JWT_SECRET ?? "scholarpath-dev-secret",
 };
 
 if (!config.groqApiKey) {

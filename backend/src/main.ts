@@ -2,7 +2,10 @@ import express from "express";
 import cors from "cors";
 import { config } from "./config.js";
 import { chatRouter } from "./routes/chat.js";
+import { authRouter } from "./routes/auth.js";
+import { profileRouter } from "./routes/profile.js";
 import { loadIndex } from "./rag/retriever.js";
+import { runMigrations } from "./db/migrate.js";
 
 async function main() {
   const app = express();
@@ -11,6 +14,14 @@ async function main() {
 
   app.get("/", (_req, res) => res.json({ name: "ScholarPath", docs: "/api/health" }));
   app.use("/api", chatRouter);
+  app.use("/api/auth", authRouter);
+  app.use("/api/profile", profileRouter);
+
+  try {
+    await runMigrations();
+  } catch (err: any) {
+    console.warn(`[main] DB migration failed: ${err.message}`);
+  }
 
   try {
     await loadIndex();

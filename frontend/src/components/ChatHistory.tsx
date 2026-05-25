@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import type { ChatSession } from "@/hooks/useChatSessions";
 
 interface Props {
@@ -8,9 +9,24 @@ interface Props {
   onDelete: (id: string) => void;
   onToggle: () => void;
   onOpenProfile: () => void;
+  onLogout: () => void;
+  userName: string;
 }
 
-export function ChatHistory({ sessions, activeId, onSelect, onCreate, onDelete, onToggle, onOpenProfile }: Props) {
+export function ChatHistory({ sessions, activeId, onSelect, onCreate, onDelete, onToggle, onOpenProfile, onLogout, userName }: Props) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [menuOpen]);
   return (
     <div className="flex flex-col h-full bg-surface-light-alt dark:bg-surface-dark text-ink-light-strong dark:text-ink-dark-strong border border-surface-light-border dark:border-surface-dark-border rounded-lg overflow-hidden">
       {/* Top bar */}
@@ -88,27 +104,65 @@ export function ChatHistory({ sessions, activeId, onSelect, onCreate, onDelete, 
         ))}
       </div>
 
-      {/* Footer */}
-      <div className="px-3 py-3 border-t border-surface-light-border dark:border-surface-dark-border shrink-0 flex items-center gap-1">
-        <button className="flex items-center gap-3 flex-1 px-2 py-1.5 rounded-lg text-sm text-ink-light-muted dark:text-ink-dark-muted hover:bg-black/6 dark:hover:bg-white/8 hover:text-ink-light-strong dark:hover:text-ink-dark-strong transition">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-            <path d="M4.93 4.93a10 10 0 0 0 0 14.14" />
-          </svg>
-          <span>Settings &amp; help</span>
-          <span className="ml-auto w-2 h-2 rounded-full bg-brand-red shrink-0" />
-        </button>
+      {/* Footer — user profile button */}
+      <div className="px-3 py-3 border-t border-surface-light-border dark:border-surface-dark-border shrink-0 relative" ref={menuRef}>
         <button
-          onClick={onOpenProfile}
-          title="Edit profile"
-          className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:bg-black/6 dark:hover:bg-white/8 hover:text-ink-light-strong dark:hover:text-ink-dark-strong transition shrink-0"
+          onClick={() => setMenuOpen((o) => !o)}
+          className="flex items-center gap-2.5 w-full px-2 py-1.5 rounded-lg text-sm text-ink-light-muted dark:text-ink-dark-muted hover:bg-black/6 dark:hover:bg-white/8 hover:text-ink-light-strong dark:hover:text-ink-dark-strong transition"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
+          {/* Avatar circle */}
+          <span className="shrink-0 w-7 h-7 rounded-full bg-brand-gold/20 border border-brand-gold/50 flex items-center justify-center text-brand-gold-dark dark:text-brand-gold">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </span>
+          <span className="flex-1 text-left truncate text-ink-light-strong dark:text-ink-dark-strong font-medium">
+            {userName}
+          </span>
+          {/* Chevron */}
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={`shrink-0 transition-transform ${menuOpen ? "rotate-180" : ""}`}
+          >
+            <polyline points="18 15 12 9 6 15" />
           </svg>
         </button>
+
+        {/* Dropdown menu */}
+        {menuOpen && (
+          <div className="absolute bottom-full left-3 right-3 mb-1 rounded-lg border border-surface-light-border dark:border-surface-dark-border bg-surface-light dark:bg-surface-dark-alt shadow-lg overflow-hidden">
+            <button
+              onClick={() => { setMenuOpen(false); onOpenProfile(); }}
+              className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm text-ink-light-strong dark:text-ink-dark-strong hover:bg-black/6 dark:hover:bg-white/8 transition"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              Edit Profile
+            </button>
+            <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
+            <button
+              onClick={() => { setMenuOpen(false); onLogout(); }}
+              className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm text-brand-red dark:text-brand-red-light hover:bg-brand-red/8 transition"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              Log Out
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

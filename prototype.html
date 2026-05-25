@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScholarPath — Prototype</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red:        #C0272D;
+      --red-dark:   #9b1e23;
+      --gold:       #F5A623;
+      --gold-dark:  #c47d0e;
+      --bg:         #1a1a1a;
+      --surface:    #232323;
+      --surface-alt:#2c2c2c;
+      --border:     #3a3a3a;
+      --text:       #f0f0f0;
+      --muted:      #888;
+      --faint:      #555;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #111;
+      color: var(--text);
+      min-height: 100vh;
+      padding: 40px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 48px;
+    }
+
+    /* ── Label ── */
+    .screen-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    /* ── Frame ── */
+    .frame {
+      width: 1280px;
+      height: 800px;
+      background: var(--bg);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      padding: 16px;
+      gap: 12px;
+      border: 1px solid #2a2a2a;
+      box-shadow: 0 24px 64px rgba(0,0,0,.6);
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 16px 10px;
+    }
+
+    .icon-btn {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+
+    .new-chat-btn {
+      margin: 0 10px 10px;
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13px; font-weight: 500;
+      cursor: pointer;
+      width: calc(100% - 20px);
+    }
+
+    .section-label {
+      padding: 4px 14px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+
+    .chat-list { flex: 1; overflow: hidden; padding: 2px 8px; }
+
+    .chat-item {
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 2px;
+      cursor: pointer;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .chat-item.active { background: var(--gold); color: #000; font-weight: 500; }
+    .chat-item:not(.active) { color: var(--muted); }
+
+    .sidebar-footer {
+      border-top: 1px solid var(--border);
+      padding: 10px 10px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .settings-btn {
+      flex: 1;
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: none; background: transparent;
+      color: var(--muted); font-size: 13px;
+      cursor: pointer;
+    }
+
+    .notif-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--red); margin-left: auto; }
+
+    .profile-btn {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      border: none; background: transparent;
+      color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .profile-btn.active { background: var(--surface-alt); color: var(--gold); }
+
+    /* ── Main area ── */
+    .main {
+      flex: 1;
+      background: var(--surface);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .main-header {
+      background: var(--surface-alt);
+      border-bottom: 2px solid var(--gold);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .logo-title { font-size: 17px; font-weight: 700; color: var(--red); display: flex; align-items: center; gap: 8px; }
+    .gold-bar { width: 6px; height: 20px; background: var(--gold); border-radius: 2px; }
+    .logo-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+    .theme-toggle {
+      width: 34px; height: 18px; border-radius: 9px;
+      background: var(--border);
+      position: relative;
+      flex-shrink: 0;
+    }
+    .theme-knob {
+      width: 14px; height: 14px; border-radius: 50%; background: var(--gold);
+      position: absolute; top: 2px; left: 2px;
+    }
+
+    /* ── Chat body ── */
+    .chat-body { flex: 1; overflow: hidden; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; }
+
+    .suggestions-intro { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 4px; }
+    .suggestions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .suggestion-chip {
+      font-size: 12px;
+      border: 1px solid rgba(192,39,45,.4);
+      color: var(--red);
+      border-radius: 20px;
+      padding: 5px 14px;
+    }
+
+    .message { display: flex; gap: 10px; align-items: flex-start; }
+    .message.user { flex-direction: row-reverse; }
+
+    .avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .avatar.sp { background: var(--red); color: #fff; }
+    .avatar.you { background: var(--gold); color: #000; }
+
+    .bubble {
+      max-width: 68%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .bubble.assistant { background: var(--surface-alt); color: var(--text); border-radius: 2px 12px 12px 12px; }
+    .bubble.user { background: var(--red); color: #fff; border-radius: 12px 2px 12px 12px; }
+
+    .citation {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      padding-top: 6px;
+    }
+
+    .followups { padding: 0 16px 10px; display: flex; flex-wrap: wrap; gap: 6px; flex-shrink: 0; }
+    .followup-chip {
+      font-size: 12px;
+      border: 1px solid rgba(192,39,45,.4);
+      color: var(--red);
+      border-radius: 20px;
+      padding: 4px 12px;
+    }
+
+    .chat-input-row {
+      border-top: 1px solid var(--border);
+      background: var(--surface-alt);
+      padding: 10px 12px;
+      display: flex; gap: 8px;
+      flex-shrink: 0;
+    }
+    .chat-input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .send-btn {
+      background: var(--red);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 18px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* ── Profile page ── */
+    .profile-body { flex: 1; overflow: hidden; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+    .info-banner {
+      background: rgba(245,166,35,.08);
+      border: 1px solid rgba(245,166,35,.35);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--text);
+      display: flex; align-items: flex-start; gap: 10px;
+      flex-shrink: 0;
+    }
+    .info-icon { color: var(--gold); flex-shrink: 0; margin-top: 1px; }
+
+    .profile-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr auto;
+      gap: 12px;
+      overflow: hidden;
+    }
+
+    .profile-card {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: hidden;
+    }
+    .profile-card.full-width { grid-column: span 2; }
+
+    .card-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--gold-dark);
+      border-bottom: 1px solid rgba(245,166,35,.3);
+      padding-bottom: 6px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 3px; }
+    .field-label { font-size: 11px; color: var(--muted); font-weight: 500; }
+    .field-input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: var(--faint);
+    }
+
+    .yesno { display: flex; flex-direction: column; gap: 4px; }
+    .yesno-label { font-size: 12px; color: var(--text); }
+    .pills { display: flex; gap: 4px; }
+    .pill {
+      padding: 3px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      font-size: 11px; font-weight: 700;
+      color: var(--muted);
+    }
+    .pill.active { background: var(--gold); color: #000; border-color: var(--gold); }
+
+    .back-btn {
+      width: 28px; height: 28px; border-radius: 6px;
+      border: none; background: transparent;
+      color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    svg { display: block; }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════════════
+       SCREEN 1 — Chat View
+  ═══════════════════════════════════════════════════ -->
+  <div>
+    <div class="screen-label">Screen 1 · Chat View</div>
+    <div class="frame">
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-top">
+          <div class="icon-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </div>
+          <div class="icon-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+        </div>
+
+        <div class="new-chat-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          New chat
+        </div>
+
+        <div class="section-label">Chats</div>
+
+        <div class="chat-list">
+          <div class="chat-item active">Am I eligible for Academic Sch…</div>
+          <div class="chat-item">DOST-SEI scholarship requirements</div>
+          <div class="chat-item">Income-based scholarships</div>
+          <div class="chat-item">Civil Engineering scholarships</div>
+          <div class="chat-item">Athlete scholarship criteria</div>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="settings-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+            Settings &amp; help
+            <div class="notif-dot"></div>
+          </div>
+          <div class="profile-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat main -->
+      <div class="main">
+        <div class="main-header">
+          <div>
+            <div class="logo-title"><div class="gold-bar"></div>ScholarPath</div>
+            <div class="logo-sub">AI Scholarship Navigator · Mapúa University</div>
+          </div>
+          <div class="theme-toggle"><div class="theme-knob"></div></div>
+        </div>
+
+        <div class="chat-body">
+          <div class="message">
+            <div class="avatar sp">SP</div>
+            <div class="bubble assistant">
+              Hello! I'm ScholarPath, your AI scholarship navigator for Mapúa University. I can help you find scholarships you're eligible for, explain requirements, and answer questions about financial aid programs. What would you like to know?
+            </div>
+          </div>
+
+          <div class="message user">
+            <div class="avatar you">You</div>
+            <div class="bubble user">Am I eligible for the Academic Scholarship with a 1.50 GWA?</div>
+          </div>
+
+          <div class="message">
+            <div class="avatar sp">SP</div>
+            <div class="bubble assistant">
+              Based on your GWA of 1.50, you <strong>may qualify</strong> for the Mapúa Academic Excellence Scholarship. Here's what you need to know:
+              <br><br>
+              • Minimum GWA requirement: <strong>1.50 or better</strong> ✓<br>
+              • Must be a full-time student with no failing grades<br>
+              • No disciplinary record within the semester<br>
+              • Benefits cover <strong>50% tuition discount</strong>
+              <div class="citation">📄 Sources: Scholarship Handbook p.12 — Academic Scholarships, p.14 — Eligibility Criteria</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="followups">
+          <div class="followup-chip">What other scholarships can I apply for?</div>
+          <div class="followup-chip">How do I maintain this scholarship?</div>
+          <div class="followup-chip">What if my GWA drops?</div>
+        </div>
+
+        <div class="chat-input-row">
+          <div class="chat-input">Ask about a scholarship…</div>
+          <div class="send-btn">Send</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════
+       SCREEN 2 — Profile View
+  ═══════════════════════════════════════════════════ -->
+  <div>
+    <div class="screen-label">Screen 2 · Profile View</div>
+    <div class="frame">
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-top">
+          <div class="icon-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </div>
+          <div class="icon-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+        </div>
+
+        <div class="new-chat-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          New chat
+        </div>
+
+        <div class="section-label">Chats</div>
+
+        <div class="chat-list">
+          <div class="chat-item">Am I eligible for Academic Sch…</div>
+          <div class="chat-item">DOST-SEI scholarship requirements</div>
+          <div class="chat-item">Income-based scholarships</div>
+          <div class="chat-item">Civil Engineering scholarships</div>
+          <div class="chat-item">Athlete scholarship criteria</div>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="settings-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+            Settings &amp; help
+            <div class="notif-dot"></div>
+          </div>
+          <div class="profile-btn active">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile main -->
+      <div class="main">
+        <div class="main-header">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="back-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            </div>
+            <div>
+              <div class="logo-title"><div class="gold-bar"></div>Your Profile</div>
+              <div class="logo-sub">Shared across all your chats</div>
+            </div>
+          </div>
+          <div class="theme-toggle"><div class="theme-knob"></div></div>
+        </div>
+
+        <div class="profile-body">
+
+          <!-- Info banner -->
+          <div class="info-banner">
+            <div class="info-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            Your profile is shared across all chats and saved locally on this device. Once accounts are available, it will be tied to your student account automatically.
+          </div>
+
+          <!-- Grid -->
+          <div class="profile-grid">
+
+            <!-- Academic -->
+            <div class="profile-card">
+              <div class="card-title">Academic</div>
+              <div class="field">
+                <div class="field-label">GWA (1.00 = highest, 5.00 = lowest)</div>
+                <div class="field-input">1.50</div>
+              </div>
+              <div class="field">
+                <div class="field-label">Year Level</div>
+                <div class="field-input">2nd Year</div>
+              </div>
+              <div class="field">
+                <div class="field-label">Program</div>
+                <div class="field-input">BS Computer Engineering</div>
+              </div>
+            </div>
+
+            <!-- Financial -->
+            <div class="profile-card">
+              <div class="card-title">Financial</div>
+              <div class="field">
+                <div class="field-label">Annual Family Income (PHP)</div>
+                <div class="field-input">350,000</div>
+              </div>
+            </div>
+
+            <!-- Background -->
+            <div class="profile-card">
+              <div class="card-title">Background</div>
+              <div class="yesno">
+                <div class="yesno-label">Filipino citizen</div>
+                <div class="pills">
+                  <div class="pill active">Yes</div>
+                  <div class="pill">No</div>
+                  <div class="pill">—</div>
+                </div>
+              </div>
+              <div class="yesno">
+                <div class="yesno-label">Athlete (NCAA-eligible or represent Mapúa)</div>
+                <div class="pills">
+                  <div class="pill">Yes</div>
+                  <div class="pill active">No</div>
+                  <div class="pill">—</div>
+                </div>
+              </div>
+              <div class="yesno">
+                <div class="yesno-label">Member of an indigenous community</div>
+                <div class="pills">
+                  <div class="pill">Yes</div>
+                  <div class="pill active">No</div>
+                  <div class="pill">—</div>
+                </div>
+              </div>
+              <div class="yesno">
+                <div class="yesno-label">Person with disability (PWD)</div>
+                <div class="pills">
+                  <div class="pill">Yes</div>
+                  <div class="pill active">No</div>
+                  <div class="pill">—</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mapúa Relationships -->
+            <div class="profile-card">
+              <div class="card-title">Mapúa Relationships</div>
+              <div class="yesno">
+                <div class="yesno-label">Direct family member is a Mapúa alumnus</div>
+                <div class="pills">
+                  <div class="pill">Yes</div>
+                  <div class="pill">No</div>
+                  <div class="pill active">—</div>
+                </div>
+              </div>
+              <div class="yesno">
+                <div class="yesno-label">Child of a Mapúa faculty member</div>
+                <div class="pills">
+                  <div class="pill">Yes</div>
+                  <div class="pill active">No</div>
+                  <div class="pill">—</div>
+                </div>
+              </div>
+              <div class="yesno">
+                <div class="yesno-label">Mapúa employee or family of one</div>
+                <div class="pills">
+                  <div class="pill">Yes</div>
+                  <div class="pill active">No</div>
+                  <div class="pill">—</div>
+                </div>
+              </div>
+              <div class="yesno">
+                <div class="yesno-label">Sibling currently enrolled at Mapúa</div>
+                <div class="pills">
+                  <div class="pill">Yes</div>
+                  <div class="pill">No</div>
+                  <div class="pill active">—</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- High School -->
+            <div class="profile-card full-width">
+              <div class="card-title">High School (for freshmen)</div>
+              <div class="field">
+                <div class="field-label">Honors received</div>
+                <div class="field-input">—</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

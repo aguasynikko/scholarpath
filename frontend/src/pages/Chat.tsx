@@ -157,7 +157,12 @@ function ChatArea({ profile, initialTurns, onTurnsUpdate, sidebarOpen, onOpenSid
 
 type View = "chat" | "profile";
 
-export function ChatPage() {
+interface ChatPageProps {
+  onLogout: () => void;
+  userName: string;
+}
+
+export function ChatPage({ onLogout, userName }: ChatPageProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [view, setView] = useState<View>("chat");
 
@@ -200,6 +205,8 @@ export function ChatPage() {
             onDelete={deleteSession}
             onToggle={() => setSidebarOpen(false)}
             onOpenProfile={() => setView("profile")}
+            onLogout={onLogout}
+            userName={userName}
           />
         </div>
       </aside>
